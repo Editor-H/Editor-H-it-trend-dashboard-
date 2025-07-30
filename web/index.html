@@ -2,50 +2,564 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>IT 트렌드 대시보드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HoneyBee</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    h1 { margin-bottom: 1rem; }
-    .card-container { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .card {
-      width: 300px;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-      cursor: pointer;
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
     }
-    .card:hover { transform: scale(1.02); }
-    .title { font-weight: bold; margin-bottom: 0.5rem; }
-    .meta { font-size: 0.9rem; color: gray; }
+
+    .navbar {
+      position: relative;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px 40px;
+      background-color: #121212;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 60px;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo span.h { color: #FFD54F; }
+    .logo span.b { color: #FFB74D; }
+
+    .categories {
+      display: flex;
+      gap: 10px;
+      font-size: 16px;
+      margin-left: 40px;
+      position: relative;
+      align-items: center;
+    }
+
+    .categories > div {
+      cursor: pointer;
+      padding: 4px 8px;
+      position: relative;
+      user-select: none;
+      color: #f0f0f0;
+      white-space: nowrap;
+    }
+
+    .categories > div > span {
+      color: inherit;
+      transition: color 0.2s;
+    }
+
+    .categories > div:hover > span,
+    .categories > div.active > span {
+      color: #FFD54F;
+    }
+
+    #stats-tab {
+      cursor: pointer;
+      margin-left: 10px;
+      color: #f0f0f0;
+      user-select: none;
+    }
+
+    #stats-tab.active {
+      color: #FFD54F;
+    }
+
+    .subcategories-container {
+      position: absolute;
+      background: transparent;
+      padding: 0;
+      color: #ccc;
+      display: none;
+      gap: 18px;
+      font-size: 14px;
+      white-space: nowrap;
+      z-index: 20;
+      top: 100%;
+      left: 0;
+    }
+
+    .subcategories-container span {
+      cursor: pointer;
+      color: #ccc;
+      transition: color 0.2s;
+    }
+
+    .subcategories-container span:hover,
+    .subcategories-container span.active {
+      color: #FFD54F;
+    }
+
+    #search-container {
+      padding: 40px 40px 10px 40px;
+      background-color: #121212;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #search-input {
+      width: 100%;
+      max-width: 600px;
+      padding: 10px 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background-color: #2a2a2a;
+      color: #f0f0f0;
+    }
+
+    #search-input::placeholder {
+      color: #999;
+    }
+
+    .popular-keywords {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .popular-keywords span {
+      background-color: #2a2a2a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #f0f0f0;
+      transition: background-color 0.2s;
+    }
+
+    .popular-keywords span:hover {
+      background-color: #3a3a3a;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px;
+    }
+
+    .card {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 450;
+      margin: 12px 0 8px;
+      color: #fff;
+    }
+
+    .card p {
+      font-size: 12px;
+      font-weight: 450;
+      color: #f3db8d;
+      margin: 2px 0;
+    }
+
+    /* 통계 스타일 */
+    #statistics-container {
+      padding: 40px;
+      color: #f0f0f0;
+    }
+
+    #stats-filters {
+      margin-bottom: 20px;
+    }
+
+    #stats-filters button {
+      background-color: #2a2a2a;
+      border: none;
+      color: #f0f0f0;
+      padding: 6px 14px;
+      margin-right: 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    #stats-filters button:hover,
+    #stats-filters button.active {
+      background-color: #FFD54F;
+      color: #121212;
+    }
+
+    #stats-results {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    #stats-results > div {
+      flex: 1;
+      min-width: 180px;
+      max-width: 280px;
+    }
+
+    #stats-results h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #FFD54F;
+      font-size: 18px;
+      border-bottom: 1px solid #FFD54F;
+      padding-bottom: 4px;
+    }
+
+    #stats-results ol {
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    #stats-results li {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
   </style>
 </head>
+
 <body>
-  <h1>📰 최신 IT 트렌드 모아보기</h1>
-  <div class="card-container" id="cardContainer"></div>
+  <div class="navbar">
+    <div class="logo">
+      🍯 <span class="h">H</span>oney<span class="b">B</span>ee
+    </div>
+    <div class="categories" id="categories">
+      <div data-cat="전체"><span>전체</span></div>
+      <div data-cat="AI"><span>AI</span></div>
+      <div data-cat="개발"><span>개발</span></div>
+      <div data-cat="기획"><span>기획</span></div>
+      <div data-cat="게임"><span>게임</span></div>
+      <div data-cat="디자인"><span>디자인</span></div>
+      <div data-cat="비즈니스"><span>비즈니스</span></div>
+      <div id="stats-tab">통계</div>
+    </div>
+  </div>
+
+  <div id="subcategories" class="subcategories-container"></div>
+
+  <div id="search-container">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="🔍 어떤 키워드를 찾고 있나요?"
+      autocomplete="off"
+    />
+    <div class="popular-keywords">
+      <span onclick="applyKeyword('감자어멈')">감자어멈</span>
+      <span onclick="applyKeyword('AI')">AI</span>
+      <span onclick="applyKeyword('나폴레옹')">나폴레옹</span>
+    </div>
+  </div>
+
+  <div id="card-container" class="card-container"></div>
+
+  <div id="statistics-container" style="display:none;">
+    <div id="stats-filters">
+      <button data-period="7">1주일</button>
+      <button data-period="30" class="active">1개월</button>
+      <button data-period="90">3개월</button>
+      <button data-period="180">6개월</button>
+      <button data-period="365">1년</button>
+    </div>
+    <div id="stats-results"></div>
+  </div>
 
   <script>
+    const categories = document.getElementById('categories');
+    const subcategories = document.getElementById('subcategories');
+    const cardContainer = document.getElementById('card-container');
+    const searchInput = document.getElementById('search-input');
+    const popularKeywords = document.querySelector('.popular-keywords');
+    const statisticsContainer = document.getElementById('statistics-container');
+    const statsTab = document.getElementById('stats-tab');
+    const statsFilters = document.getElementById('stats-filters');
+    const statsResults = document.getElementById('stats-results');
+
+    const subcatMap = {
+      "전체": [],
+      "AI": ["생성형 AI", "LLM", "AI 도구"],
+      "개발": ["프론트엔드", "백엔드", "모바일"],
+      "기획": [],
+      "게임": [],
+      "디자인": [],
+      "비즈니스": []
+    };
+
+    let activeCat = null;
+    let activeSubcat = null;
+    let posts = [];
+
     fetch('../data/posts.json')
       .then(response => response.json())
       .then(data => {
-        const container = document.getElementById('cardContainer');
-        data.forEach(post => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => window.open(post.link, '_blank');
-          card.innerHTML = `
-            <img src="${post.image_url}" alt="Thumbnail" style="width:100%; height:150px; object-fit:cover; border-radius:6px; margin-bottom:0.5rem;" />
-            <div class="title">${post.title}</div>
-            <div class="meta">${post.author} · ${post.date}</div>
-            <div class="meta">출처: ${post.source}</div>
-          `;
-          container.appendChild(card);
-        });
+        posts = data;
+        renderCards();
       })
-      .catch(error => {
-        console.error('JSON 로드 실패:', error);
+      .catch(err => {
+        console.error('데이터 로드 실패:', err);
       });
+
+    categories.querySelectorAll('div[data-cat]').forEach(catEl => {
+      catEl.addEventListener('click', () => {
+        // 통계 탭이면 여기서 무시됨
+        if (catEl.id === 'stats-tab') return;
+
+        // 통계 탭 active 제거
+        statsTab.classList.remove('active');
+        statisticsContainer.style.display = 'none';
+        cardContainer.style.display = 'grid';
+        searchInput.style.display = 'block';
+        popularKeywords.style.display = 'flex';
+
+        searchInput.value = '';
+
+        if (activeCat === catEl.dataset.cat) {
+          activeCat = null;
+          activeSubcat = null;
+          catEl.classList.remove('active');
+          subcategories.style.display = 'none';
+          renderCards();
+          return;
+        }
+
+        categories.querySelectorAll('div').forEach(el => el.classList.remove('active'));
+        activeSubcat = null;
+
+        activeCat = catEl.dataset.cat;
+        catEl.classList.add('active');
+
+        const subs = subcatMap[activeCat] || [];
+        if (subs.length > 0) {
+          subcategories.innerHTML = '';
+          subs.forEach(sub => {
+            const span = document.createElement('span');
+            span.textContent = sub;
+            span.dataset.subcat = sub;
+            span.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (activeSubcat === sub) {
+                activeSubcat = null;
+                span.classList.remove('active');
+                subcategories.style.display = 'none';
+              } else {
+                activeSubcat = sub;
+                subcategories.querySelectorAll('span').forEach(s => s.classList.remove('active'));
+                span.classList.add('active');
+                subcategories.style.display = 'flex';
+              }
+              renderCards();
+            });
+            subcategories.appendChild(span);
+          });
+
+          const rect = catEl.getBoundingClientRect();
+          const navRect = categories.getBoundingClientRect();
+
+          subcategories.style.display = 'flex';
+          subcategories.style.top = `${rect.bottom - navRect.top + 12}px`;
+          subcategories.style.left = `${rect.left - navRect.left + 225}px`;
+          subcategories.style.width = `auto`;
+        } else {
+          subcategories.style.display = 'none';
+          subcategories.innerHTML = '';
+        }
+        renderCards();
+      });
+    });
+
+    // 통계 탭 클릭 이벤트
+    statsTab.addEventListener('click', () => {
+      // 모든 카테고리 active 해제
+      categories.querySelectorAll('div').forEach(el => el.classList.remove('active'));
+      statsTab.classList.add('active');
+
+      activeCat = null;
+      activeSubcat = null;
+
+      searchInput.value = '';
+      searchInput.style.display = 'none';
+      popularKeywords.style.display = 'none';
+
+      subcategories.style.display = 'none';
+
+      // 카드 영역 숨기고 통계 영역 보이기
+      cardContainer.style.display = 'none';
+      statisticsContainer.style.display = 'block';
+
+      // 기본 기간 30일(1개월)로 통계 렌더링
+      setActiveFilterButton(30);
+      renderStatistics(30);
+    });
+
+    // 검색창 입력 이벤트
+    searchInput.addEventListener('input', () => {
+      renderCards();
+    });
+
+    // 인기 키워드 클릭 시 검색 적용 함수
+    function applyKeyword(word) {
+      searchInput.value = word;
+      activeCat = null;  // 전체 필터 없이 검색어만 적용
+      activeSubcat = null;
+
+      // 카테고리 active 모두 해제
+      document.querySelectorAll('#categories > div').forEach(el => el.classList.remove('active'));
+      statsTab.classList.remove('active');
+
+      subcategories.style.display = 'none';
+      renderCards();
+    }
+
+    // 카드 렌더링 함수
+    function renderCards() {
+      cardContainer.innerHTML = '';
+
+      let filteredPosts = posts;
+
+      if (activeCat && activeCat !== '전체') {
+        filteredPosts = filteredPosts.filter(post => post.category === activeCat);
+      }
+
+      if (activeSubcat) {
+        filteredPosts = filteredPosts.filter(post => post.subcategory === activeSubcat);
+      }
+
+      const keyword = searchInput.value.trim().toLowerCase();
+      if (keyword.length > 0) {
+        filteredPosts = filteredPosts.filter(post => {
+          return (
+            (post.title && post.title.toLowerCase().includes(keyword)) ||
+            (post.author && post.author.toLowerCase().includes(keyword)) ||
+            (post.category && post.category.toLowerCase().includes(keyword)) ||
+            (post.subcategory && post.subcategory.toLowerCase().includes(keyword)) ||
+            (post.source && post.source.toLowerCase().includes(keyword))
+          );
+        });
+      }
+
+      filteredPosts.forEach(post => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+
+        card.innerHTML = `
+          <img src="${post.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="thumbnail" />
+          <h3>${post.title}</h3>
+          <p>${post.author} | ${post.date}</p>
+        `;
+
+        card.onclick = () => {
+          window.open(post.link, '_blank');
+        };
+
+        cardContainer.appendChild(card);
+      });
+    }
+
+    // 통계 필터 버튼 클릭 처리
+    statsFilters.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON') {
+        const days = parseInt(e.target.dataset.period, 10);
+        setActiveFilterButton(days);
+        renderStatistics(days);
+      }
+    });
+
+    // 버튼 active 상태 변경 함수
+    function setActiveFilterButton(days) {
+      statsFilters.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.period, 10) === days);
+      });
+    }
+
+    // 통계 렌더링 함수
+    function renderStatistics(days) {
+      const now = new Date();
+      const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+      // 기간 내 글 필터링
+      const filtered = posts.filter(post => new Date(post.date) >= cutoff);
+
+      // 작성자, 키워드, 카테고리, 출처 집계 함수
+      function countByField(field) {
+        const counts = {};
+        filtered.forEach(post => {
+          if (post[field]) {
+            if (field === 'keywords' && Array.isArray(post[field])) {
+              post[field].forEach(kw => {
+                counts[kw] = (counts[kw] || 0) + 1;
+              });
+            } else {
+              counts[post[field]] = (counts[post[field]] || 0) + 1;
+            }
+          }
+        });
+        return counts;
+      }
+
+      const authorCounts = countByField('author');
+      const keywordCounts = countByField('keywords');
+      const categoryCounts = countByField('category');
+      const sourceCounts = countByField('source');
+
+      // 정렬 및 상위 10개 추출 함수
+      function getTop10(counts) {
+        return Object.entries(counts)
+          .sort((a,b) => b[1] - a[1])
+          .slice(0, 10);
+      }
+
+      // HTML 생성 함수
+      function createRankingHTML(title, data) {
+        if (data.length === 0) return `<div><h3>${title}</h3><p>데이터가 없습니다.</p></div>`;
+        return `
+          <div>
+            <h3>${title}</h3>
+            <ol>
+              ${data.map(([key, count]) => `<li>${key} — ${count}건</li>`).join('')}
+            </ol>
+          </div>
+        `;
+      }
+
+      statsResults.innerHTML =
+        createRankingHTML('작성자 랭킹', getTop10(authorCounts)) +
+        createRankingHTML('키워드 랭킹', getTop10(keywordCounts)) +
+        createRankingHTML('카테고리 랭킹', getTop10(categoryCounts)) +
+        createRankingHTML('출처 랭킹', getTop10(sourceCounts));
+    }
   </script>
 </body>
 </html>
